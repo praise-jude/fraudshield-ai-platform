@@ -1,0 +1,43 @@
+/* ============================================================
+   ROYALMAN — SPACING, RADII, SHADOWS, LAYOUT
+   Tailwind default scale (site is built on Tailwind).
+   ============================================================ */
+:root {
+  /* Spacing scale (Tailwind rem→px @16) */
+  --rm-space-1:  4px;
+  --rm-space-2:  8px;
+  --rm-space-3:  12px;
+  --rm-space-4:  16px;
+  --rm-space-5:  20px;
+  --rm-space-6:  24px;
+  --rm-space-8:  32px;
+  --rm-space-10: 40px;
+  --rm-space-12: 48px;
+  --rm-space-16: 64px;
+  --rm-space-20: 80px;
+
+  /* Page gutters (px-5 / md:px-10 / lg:px-20 on header) */
+  --rm-gutter-mobile:  20px;
+  --rm-gutter-tablet:  40px;
+  --rm-gutter-desktop: 80px;
+
+  /* Container widths used on site */
+  --rm-container-prose: 768px;   /* max-w-3xl / 4xl content blocks */
+  --rm-container-wide:  1152px;  /* max-w-6xl packages grid */
+
+  /* Radii */
+  --rm-radius-sm:   4px;
+  --rm-radius-lg:   8px;    /* rounded-lg — cards, quote button */
+  --rm-radius-xl:   12px;   /* rounded-xl — inputs, subscribe */
+  --rm-radius-full: 9999px; /* rounded-full — primary CTAs */
+
+  /* Shadows (Tailwind) */
+  --rm-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --rm-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --rm-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+
+  /* Motion — site uses transition duration 300ms (nav) & 700ms (header bg) */
+  --rm-ease:        cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --rm-duration:    300ms; /* @kind other */
+  --rm-duration-lg: 700ms; /* @kind other */
+}

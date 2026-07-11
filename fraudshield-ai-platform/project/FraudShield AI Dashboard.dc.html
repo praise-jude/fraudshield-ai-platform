@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 8px; }
+    @keyframes rm-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+    @keyframes rm-fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</helmet>
+
+<div style="display:flex; width:100%; height:100vh; background:#F3F4F6; color:#1F2937; overflow:hidden;">
+
+  <!-- SIDEBAR -->
+  <div style="width:240px; flex:none; background:#030712; display:flex; flex-direction:column; padding:24px 16px; gap:28px;">
+    <div style="display:flex; align-items:center; gap:10px; padding:0 8px;">
+      <div style="width:34px; height:34px; border-radius:8px; background:#FF9300; display:flex; align-items:center; justify-content:center; flex:none;">
+        <i class="fa-solid fa-shield-halved" style="color:#fff; font-size:16px;"></i>
+      </div>
+      <div style="font-weight:800; font-size:16px; color:#fff; line-height:1.2;">FraudShield <span style="color:#FF9300;">AI</span></div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:2px;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="5">
+        <div onClick="{{ item.onClick }}" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; cursor:pointer; background:{{ item.bg }}; transition:background 150ms;">
+          <i class="{{ item.icon }}" style="width:18px; text-align:center; color:{{ item.color }}; font-size:15px;"></i>
+          <span style="color:{{ item.color }}; font-size:14px; font-weight:{{ item.weight }};">{{ item.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:auto; padding:14px 12px; background:rgba(255,255,255,0.06); border-radius:10px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="width:8px; height:8px; border-radius:50%; background:{{ liveDotColor }}; animation:{{ liveDotAnim }};"></span>
+        <span style="font-size:12px; color:rgba(255,255,255,0.75); font-weight:600;">{{ liveStatusLabel }}</span>
+      </div>
+      <div onClick="{{ toggleLive }}" style="font-size:12px; color:#FF9300; cursor:pointer; font-weight:600;">{{ liveToggleLabel }}</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0; height:100vh;">
+
+    <!-- TOP BAR -->
+    <div style="flex:none; height:64px; background:#fff; border-bottom:1px solid #E5E7EB; display:flex; align-items:center; justify-content:space-between; padding:0 28px;">
+      <div>
+        <div style="font-size:18px; font-weight:700; color:#1F2937;">{{ viewTitle }}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:18px;">
+        <div style="position:relative;">
+          <i class="fa-solid fa-bell" style="color:#4B5563; font-size:16px;"></i>
+          <sc-if value="{{ hasActiveAlerts }}">
+            <span style="position:absolute; top:-4px; right:-5px; width:14px; height:14px; border-radius:50%; background:#EF4444; color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center;">{{ activeAlertsCount }}</span>
+          </sc-if>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:#000F9A; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">AO</div>
+          <div style="font-size:13px; font-weight:600; color:#1F2937;">Adaeze O.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div style="flex:1; overflow-y:auto; padding:28px;">
+
+      <!-- OVERVIEW -->
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;">
+            <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="4">
+              <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                  <span style="font-size:12px; font-weight:600; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em;">{{ kpi.label }}</span>
+                  <div style="width:30px; height:30px; border-radius:8px; background:{{ kpi.iconBg }}; display:flex; align-items:center; justify-content:center;">
+                    <i class="{{ kpi.icon }}" style="color:{{ kpi.iconColor }}; font-size:13px;"></i>
+                  </div>
+                </div>
+                <div style="font-size:26px; font-weight:800; color:#1F2937;">{{ kpi.value }}</div>
+                <div style="font-size:12px; color:{{ kpi.subColor }}; font-weight:600; margin-top:4px;">{{ kpi.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1.6fr 1fr; gap:16px; align-items:start;">
+
+            <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); overflow:hidden;">
+              <div style="padding:18px 20px; border-bottom:1px solid #E5E7EB; display:flex; align-items:center; justify-content:space-between;">
+                <div style="font-size:15px; font-weight:700; color:#1F2937;">Live Transaction Feed</div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="width:7px; height:7px; border-radius:50%; background:{{ liveDotColor }}; animation:{{ liveDotAnim }};"></span>
+                  <span style="font-size:11px; color:#6B7280; font-weight:600;">{{ liveStatusLabel }}</span>
+                </div>
+              </div>
+              <div style="max-height:420px; overflow-y:auto;">
+                <sc-for list="{{ feedTransactions }}" as="tx" hint-placeholder-count="6">
+                  <div style="display:flex; align-items:center; gap:14px; padding:13px 20px; border-bottom:1px solid #F3F4F6; animation:rm-fadein 300ms ease;">
+                    <div style="width:34px; height:34px; border-radius:50%; background:#F3F4F6; display:flex; align-items:center; justify-content:center; flex:none;">
+                      <i class="{{ tx.deviceIcon }}" style="color:#6B7280; font-size:13px;"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-size:13px; font-weight:600; color:#1F2937;">{{ tx.customer }}</div>
+                      <div style="font-size:11.5px; color:#6B7280;">{{ tx.country }} &middot; {{ tx.device }} &middot; {{ tx.time }}</div>
+                    </div>
+                    <div style="font-size:13px; font-weight:700; color:#1F2937; text-align:right; min-width:92px;">{{ tx.amountDisplay }}</div>
+                    <div style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:9999px; background:{{ tx.statusBg }}; color:{{ tx.statusColor }}; white-space:nowrap;">{{ tx.statusLabel }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:20px;">
+                <div style="font-size:15px; font-weight:700; color:#1F2937; margin-bottom:14px;">Top Risk Regions</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <sc-for list="{{ riskRegions }}" as="region" hint-placeholder-count="5">
+                    <div>
+                      <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;">
+                        <span style="font-weight:600; color:#374151;">{{ region.name }}</span>
+                        <span style="color:#6B7280;">{{ region.count }} flagged</span>
+                      </div>
+                      <div style="height:6px; background:#F3F4F6; border-radius:9999px; overflow:hidden;">
+                        <div style="height:100%; width:{{ region.pct }}; background:{{ region.color }}; border-radius:9999px;"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:20px;">
+                <div style="font-size:15px; font-weight:700; color:#1F2937; margin-bottom:6px;">Risk Score Distribution</div>
+                <div style="font-size:12px; color:#6B7280; margin-bottom:16px;">Across last {{ txCount }} transactions</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <sc-for list="{{ riskBuckets }}" as="bucket" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <span style="width:8px; height:8px; border-radius:2px; background:{{ bucket.color }}; flex:none;"></span>
+                      <span style="font-size:12.5px; color:#374151; width:64px; flex:none;">{{ bucket.label }}</span>
+                      <div style="flex:1; height:8px; background:#F3F4F6; border-radius:9999px; overflow:hidden;">
+                        <div style="height:100%; width:{{ bucket.pct }}; background:{{ bucket.color }}; border-radius:9999px;"></div>
+                      </div>
+                      <span style="font-size:12px; color:#6B7280; width:26px; text-align:right; flex:none;">{{ bucket.count }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- TRANSACTIONS -->
+      <sc-if value="{{ isTransactions }}">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="flex:1; position:relative; max-width:320px;">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9CA3AF; font-size:13px;"></i>
+              <input value="{{ txSearch }}" onChange="{{ onSearchChange }}" placeholder="Search customer or IP..." style="width:100%; padding:10px 14px 10px 36px; border:1px solid #E5E7EB; border-radius:8px; font-size:13px; font-family:inherit; outline:none;" />
+            </div>
+            <select value="{{ txRiskFilter }}" onChange="{{ onRiskFilterChange }}" style="padding:10px 14px; border:1px solid #E5E7EB; border-radius:8px; font-size:13px; font-family:inherit; color:#374151; background:#fff;">
+              <option value="all">All risk levels</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+            <div style="margin-left:auto; font-size:12.5px; color:#6B7280;">{{ filteredCount }} of {{ txCount }} transactions</div>
+          </div>
+
+          <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); overflow:hidden;">
+            <div style="display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr 0.8fr 0.9fr; gap:12px; padding:12px 20px; background:#F9FAFB; border-bottom:1px solid #E5E7EB; font-size:11px; font-weight:700; color:#6B7280; text-transform:uppercase; letter-spacing:0.03em;">
+              <div>Customer</div><div>Country</div><div>Device / IP</div><div>Amount</div><div>Risk</div><div>Status</div>
+            </div>
+            <div style="max-height:560px; overflow-y:auto;">
+              <sc-for list="{{ filteredTransactions }}" as="tx" hint-placeholder-count="8">
+                <div style="display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr 0.8fr 0.9fr; gap:12px; padding:14px 20px; border-bottom:1px solid #F3F4F6; align-items:center; font-size:13px;">
+                  <div>
+                    <div style="font-weight:600; color:#1F2937;">{{ tx.customer }}</div>
+                    <div style="font-size:11px; color:#9CA3AF;">{{ tx.time }}</div>
+                  </div>
+                  <div style="color:#374151;">{{ tx.country }}</div>
+                  <div style="color:#6B7280; font-size:12px;">{{ tx.device }}<br/>{{ tx.ip }}</div>
+                  <div style="font-weight:700; color:#1F2937;">{{ tx.amountDisplay }}</div>
+                  <div style="font-weight:700; color:{{ tx.riskColor }};">{{ tx.riskScore }}</div>
+                  <div>
+                    <span style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:9999px; background:{{ tx.statusBg }}; color:{{ tx.statusColor }}; white-space:nowrap;">{{ tx.statusLabel }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CASE MANAGEMENT / ALERTS -->
+      <sc-if value="{{ isCases }}">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ cases }}" as="c" hint-placeholder-count="4">
+            <div style="background:#fff; border:1px solid #E5E7EB; border-left:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:18px 22px; display:flex; align-items:center; gap:18px;">
+              <div style="width:42px; height:42px; border-radius:8px; background:{{ c.iconBg }}; display:flex; align-items:center; justify-content:center; flex:none;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:{{ c.iconColor }}; font-size:16px;"></i>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:700; color:#1F2937;">{{ c.title }}</div>
+                <div style="font-size:12.5px; color:#6B7280; margin-top:2px;">{{ c.subtitle }}</div>
+              </div>
+              <div style="text-align:right; min-width:80px;">
+                <div style="font-size:11px; color:#9CA3AF; font-weight:600;">RISK SCORE</div>
+                <div style="font-size:16px; font-weight:800; color:{{ c.riskColor }};">{{ c.riskScore }}</div>
+              </div>
+              <div style="font-size:12px; font-weight:700; padding:6px 14px; border-radius:9999px; background:{{ c.statusBg }}; color:{{ c.statusColor }}; white-space:nowrap;">{{ c.statusLabel }}</div>
+              <div onClick="{{ c.onAdvance }}" style="font-size:12.5px; font-weight:700; color:#fff; background:#FF9300; padding:9px 16px; border-radius:9999px; cursor:pointer; white-space:nowrap;">{{ c.actionLabel }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- RULES ENGINE -->
+      <sc-if value="{{ isRules }}">
+        <div style="display:flex; flex-direction:column; gap:14px; max-width:820px;">
+          <sc-for list="{{ rules }}" as="rule" hint-placeholder-count="6">
+            <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:18px 22px; display:flex; align-items:center; gap:18px;">
+              <div style="flex:1;">
+                <div style="font-size:14px; font-weight:700; color:#1F2937;">{{ rule.name }}</div>
+                <div style="font-size:12.5px; color:#6B7280; margin-top:3px;">{{ rule.description }}</div>
+              </div>
+              <div onClick="{{ rule.onToggle }}" style="width:44px; height:24px; border-radius:9999px; background:{{ rule.trackColor }}; position:relative; cursor:pointer; flex:none; transition:background 150ms;">
+                <div style="position:absolute; top:2px; left:{{ rule.knobLeft }}; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); transition:left 150ms;"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- REPORTS -->
+      <sc-if value="{{ isReports }}">
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+          <sc-for list="{{ reports }}" as="rep" hint-placeholder-count="6">
+            <div style="background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); padding:20px; display:flex; flex-direction:column; gap:12px;">
+              <div style="width:38px; height:38px; border-radius:8px; background:#FFF4E0; display:flex; align-items:center; justify-content:center;">
+                <i class="fa-solid fa-file-lines" style="color:#FF9300; font-size:16px;"></i>
+              </div>
+              <div>
+                <div style="font-size:14.5px; font-weight:700; color:#1F2937;">{{ rep.name }}</div>
+                <div style="font-size:12.5px; color:#6B7280; margin-top:3px;">{{ rep.description }}</div>
+              </div>
+              <div style="margin-top:auto; display:flex; gap:8px;">
+                <div onClick="{{ rep.onExport }}" style="font-size:12px; font-weight:700; color:#374151; border:1px solid #E5E7EB; padding:8px 14px; border-radius:8px; cursor:pointer;">
+                  <i class="fa-solid fa-download" style="margin-right:6px;"></i>Export
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <sc-if value="{{ toastMessage }}">
+    <div style="position:fixed; bottom:28px; right:28px; background:#000F9A; color:#fff; padding:12px 20px; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.2); font-size:13px; font-weight:600; animation:rm-fadein 200ms ease;">
+      <i class="fa-solid fa-circle-check" style="margin-right:8px; color:#FF9300;"></i>{{ toastMessage }}
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}, &quot;liveOn&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}}">
+const NAV_DEFS = [
+  { id: 'overview', label: 'Overview', icon: 'fa-solid fa-gauge-high' },
+  { id: 'transactions', label: 'Transactions', icon: 'fa-solid fa-arrow-right-arrow-left' },
+  { id: 'cases', label: 'Case Management', icon: 'fa-solid fa-folder-open' },
+  { id: 'rules', label: 'Rules Engine', icon: 'fa-solid fa-list-check' },
+  { id: 'reports', label: 'Reports', icon: 'fa-solid fa-file-lines' },
+];
+
+const CUSTOMERS = ['Ada N.', 'Chinedu O.', 'Grace M.', 'Tunde A.', 'Fatima B.', 'Emeka U.', 'Blessing K.', 'Ifeoma C.', 'Segun T.', 'Rita D.'];
+const COUNTRY_DEFS = [
+  { name: 'Nigeria', risky: false, weight: 5 },
+  { name: 'Ghana', risky: false, weight: 2 },
+  { name: 'Kenya', risky: false, weight: 2 },
+  { name: 'United States', risky: false, weight: 2 },
+  { name: 'United Kingdom', risky: false, weight: 1 },
+  { name: 'Russia', risky: true, weight: 1 },
+  { name: 'Unknown (VPN)', risky: true, weight: 1 },
+];
+const DEVICE_DEFS = [
+  { name: 'Android', icon: 'fa-solid fa-mobile-screen', risky: false, weight: 4 },
+  { name: 'iOS', icon: 'fa-solid fa-mobile-screen', risky: false, weight: 4 },
+  { name: 'Web / Chrome', icon: 'fa-solid fa-desktop', risky: false, weight: 3 },
+  { name: 'Emulator', icon: 'fa-solid fa-robot', risky: true, weight: 1 },
+  { name: 'Unknown', icon: 'fa-solid fa-question', risky: true, weight: 1 },
+];
+const CURRENCIES = [
+  { code: 'NGN', symbol: '\u20a6', weight: 6, min: 2000, max: 3000000 },
+  { code: 'USD', symbol: '$', weight: 2, min: 20, max: 8000 },
+  { code: 'GBP', symbol: '\u00a3', weight: 1, min: 20, max: 6000 },
+];
+
+function weightedPick(defs) {
+  const total = defs.reduce((s, d) => s + d.weight, 0);
+  let r = Math.random() * total;
+  for (const d of defs) { if (r < d.weight) return d; r -= d.weight; }
+  return defs[0];
+}
+
+function randIp(risky) {
+  if (risky) return (Math.random() > 0.5 ? '185.220.10' : '45.9.148') + '.' + (1 + Math.floor(Math.random() * 254));
+  return '102.' + (89 + Math.floor(Math.random() * 6)) + '.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255);
+}
+
+function riskBucket(score) {
+  if (score <= 30) return { label: 'Low', color: '#22C55E', bg: '#E9F9EE' };
+  if (score <= 60) return { label: 'Medium', color: '#B98900', bg: '#FEF6E5' };
+  if (score <= 80) return { label: 'High', color: '#FF9300', bg: '#FFF1DC' };
+  return { label: 'Critical', color: '#EF4444', bg: '#FDEBEB' };
+}
+
+function fmtTime(d) {
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return hh + ':' + mm + ':' + ss;
+}
+
+let TX_SEQ = 1;
+
+function makeTransaction() {
+  const country = weightedPick(COUNTRY_DEFS);
+  const device = weightedPick(DEVICE_DEFS);
+  const currency = weightedPick(CURRENCIES);
+  const amount = Math.round(currency.min + Math.random() * (currency.max - currency.min));
+
+  let score = 5 + Math.random() * 20;
+  if (country.risky) score += 38;
+  if (device.risky) score += 28;
+  if (currency.code !== 'NGN' && amount > currency.max * 0.7) score += 12;
+  if (currency.code === 'NGN' && amount > 1500000) score += 15;
+  score = Math.max(2, Math.min(99, Math.round(score)));
+
+  const bucket = riskBucket(score);
+  const now = new Date();
+
+  return {
+    id: 'TX' + (TX_SEQ++),
+    customer: CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)],
+    country: country.name,
+    device: device.name,
+    deviceIcon: device.icon,
+    ip: randIp(country.risky || device.risky),
+    currencySymbol: currency.symbol,
+    amount: amount,
+    amountDisplay: currency.symbol + amount.toLocaleString('en-US'),
+    riskScore: score,
+    riskColor: bucket.color,
+    statusLabel: score > 80 ? 'BLOCKED' : bucket.label.toUpperCase(),
+    statusColor: bucket.color,
+    statusBg: bucket.bg,
+    time: fmtTime(now),
+    createdAt: now.getTime(),
+  };
+}
+
+function seedTransactions(n) {
+  const arr = [];
+  for (let i = 0; i < n; i++) arr.push(makeTransaction());
+  return arr;
+}
+
+const RULE_DEFS = [
+  { id: 'r1', name: 'Block transactions above \u20a6500,000', description: 'Requires manual approval for any single transaction exceeding this threshold.' },
+  { id: 'r2', name: 'Blacklisted country check', description: 'Automatically flags transactions originating from high-risk jurisdictions.' },
+  { id: 'r3', name: 'New device verification', description: 'Require additional 2FA when a transaction comes from an unrecognized device.' },
+  { id: 'r4', name: 'Outside business hours flag', description: 'Flags large transactions initiated between 12am\u20136am local time.' },
+  { id: 'r5', name: 'Velocity check', description: 'Flags accounts with more than 20 transactions within a 2-minute window.' },
+  { id: 'r6', name: 'Impossible travel detection', description: 'Flags logins from two distant locations within an implausible time window.' },
+];
+
+const REPORT_DEFS = [
+  { id: 'rep1', name: 'Daily Fraud Report', description: 'Summary of all flagged and blocked transactions in the last 24 hours.' },
+  { id: 'rep2', name: 'Weekly Report', description: '7-day rollup of fraud trends, risk regions, and prevented losses.' },
+  { id: 'rep3', name: 'Monthly Report', description: 'Full monthly performance and detection-accuracy breakdown.' },
+  { id: 'rep4', name: 'Investigator Report', description: 'Case-by-case detail log for compliance and audit review.' },
+  { id: 'rep5', name: 'Compliance Report', description: 'Regulatory-ready export of all high-risk and blocked activity.' },
+  { id: 'rep6', name: 'Executive Summary', description: 'High-level KPIs for leadership: prevented losses, trend lines.' },
+];
+
+class Component extends DCLogic {
+  state = {
+    activeView: 'overview',
+    transactions: seedTransactions(24),
+    cases: [],
+    rules: RULE_DEFS.map(r => ({ ...r, enabled: true })),
+    txSearch: '',
+    txRiskFilter: 'all',
+    liveOn: true,
+    toastMessage: '',
+  };
+
+  componentDidMount() {
+    this._seedCases();
+    this._tick();
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._timer);
+    clearTimeout(this._toastTimer);
+  }
+
+  _seedCases() {
+    const highRisk = this.state.transactions.filter(t => t.riskScore > 60).slice(0, 5);
+    const statuses = ['new', 'investigating', 'new', 'resolved', 'investigating'];
+    const cases = highRisk.map((t, i) => ({
+      txId: t.id, tx: t, status: statuses[i % statuses.length],
+    }));
+    this.setState({ cases });
+  }
+
+  _tick() {
+    this._timer = setTimeout(() => {
+      if (this.state.liveOn) {
+        const tx = makeTransaction();
+        this.setState(s => {
+          const transactions = [tx, ...s.transactions].slice(0, 60);
+          let cases = s.cases;
+          if (tx.riskScore > 60) {
+            cases = [{ txId: tx.id, tx: tx, status: 'new' }, ...s.cases].slice(0, 20);
+          }
+          return { transactions, cases };
+        });
+      }
+      this._tick();
+    }, 3200);
+  }
+
+  showToast(msg) {
+    clearTimeout(this._toastTimer);
+    this.setState({ toastMessage: msg });
+    this._toastTimer = setTimeout(() => this.setState({ toastMessage: '' }), 2400);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const view = s.activeView;
+
+    const navItems = NAV_DEFS.map(n => {
+      const active = n.id === view;
+      return {
+        id: n.id, icon: n.icon, label: n.label,
+        bg: active ? '#FF9300' : 'transparent',
+        color: active ? '#fff' : 'rgba(255,255,255,0.65)',
+        weight: active ? 700 : 500,
+        onClick: () => this.setState({ activeView: n.id }),
+      };
+    });
+
+    const viewTitleMap = {
+      overview: 'Overview', transactions: 'Transactions', cases: 'Case Management',
+      rules: 'Rules Engine', reports: 'Reports',
+    };
+
+    const txCount = s.transactions.length;
+    const safeCount = s.transactions.filter(t => t.riskScore <= 30).length;
+    const suspiciousCount = s.transactions.filter(t => t.riskScore > 30 && t.riskScore <= 80).length;
+    const blockedCount = s.transactions.filter(t => t.riskScore > 80).length;
+    const fraudPrevented = s.transactions.filter(t => t.riskScore > 80)
+      .reduce((sum, t) => sum + (t.currencySymbol === '\u20a6' ? t.amount / 1600 : t.amount), 0);
+
+    const activeAlertsCount = s.cases.filter(c => c.status !== 'resolved').length;
+
+    const kpis = [
+      { label: 'Total Transactions', value: txCount.toLocaleString(), sub: 'Last 24 hours', subColor: '#6B7280', icon: 'fa-solid fa-arrow-right-arrow-left', iconBg: '#EAF0FF', iconColor: '#000F9A' },
+      { label: 'Safe', value: safeCount.toLocaleString(), sub: ((safeCount / Math.max(txCount,1)) * 100).toFixed(0) + '% of total', subColor: '#22C55E', icon: 'fa-solid fa-circle-check', iconBg: '#E9F9EE', iconColor: '#22C55E' },
+      { label: 'Blocked', value: blockedCount.toLocaleString(), sub: 'Auto-blocked', subColor: '#EF4444', icon: 'fa-solid fa-ban', iconBg: '#FDEBEB', iconColor: '#EF4444' },
+      { label: 'Fraud Prevented', value: '$' + Math.round(fraudPrevented).toLocaleString(), sub: 'Estimated savings', subColor: '#FF9300', icon: 'fa-solid fa-sack-dollar', iconBg: '#FFF1DC', iconColor: '#FF9300' },
+    ];
+
+    const feedTransactions = s.transactions.slice(0, 10);
+
+    const regionCounts = {};
+    s.transactions.forEach(t => { regionCounts[t.country] = (regionCounts[t.country] || 0) + (t.riskScore > 60 ? 1 : 0); });
+    const riskRegions = Object.entries(regionCounts)
+      .filter(([,c]) => c > 0).sort((a,b) => b[1]-a[1]).slice(0,5)
+      .map(([name, count]) => ({ name, count, pct: Math.min(100, count * 22) + '%', color: '#FF9300' }));
+    const finalRegions = riskRegions.length ? riskRegions : [{ name: 'No flagged regions yet', count: 0, pct: '4%', color: '#E5E7EB' }];
+
+    const bucketCounts = { Low: 0, Medium: 0, High: 0, Critical: 0 };
+    s.transactions.forEach(t => { bucketCounts[riskBucket(t.riskScore).label]++; });
+    const riskBuckets = [
+      { label: 'Low', color: '#22C55E', count: bucketCounts.Low },
+      { label: 'Medium', color: '#EAB308', count: bucketCounts.Medium },
+      { label: 'High', color: '#FF9300', count: bucketCounts.High },
+      { label: 'Critical', color: '#EF4444', count: bucketCounts.Critical },
+    ].map(b => ({ ...b, pct: Math.round((b.count / Math.max(txCount,1)) * 100) + '%' }));
+
+    const search = s.txSearch.toLowerCase();
+    const filteredTransactions = s.transactions.filter(t => {
+      const matchesSearch = !search || t.customer.toLowerCase().includes(search) || t.ip.includes(search);
+      const bucket = riskBucket(t.riskScore).label.toLowerCase();
+      const matchesFilter = s.txRiskFilter === 'all' || bucket === s.txRiskFilter;
+      return matchesSearch && matchesFilter;
+    });
+
+    const CASE_STATUS_MAP = {
+      new: { label: 'NEW', bg: '#FDEBEB', color: '#EF4444', next: 'investigating', action: 'Investigate' },
+      investigating: { label: 'INVESTIGATING', bg: '#FEF6E5', color: '#B98900', next: 'resolved', action: 'Resolve' },
+      resolved: { label: 'RESOLVED', bg: '#E9F9EE', color: '#22C55E', next: 'resolved', action: 'Closed' },
+    };
+
+    const cases = s.cases.map(c => {
+      const meta = CASE_STATUS_MAP[c.status];
+      const bucket = riskBucket(c.tx.riskScore);
+      return {
+        title: c.tx.customer + ' \u00b7 ' + c.tx.amountDisplay,
+        subtitle: c.tx.country + ' \u00b7 ' + c.tx.device + ' \u00b7 ' + c.tx.ip,
+        riskScore: c.tx.riskScore,
+        riskColor: bucket.color,
+        statusLabel: meta.label,
+        statusBg: meta.bg,
+        statusColor: meta.color,
+        iconBg: bucket.bg,
+        iconColor: bucket.color,
+        actionLabel: meta.action,
+        onAdvance: () => {
+          if (c.status === 'resolved') return;
+          this.setState(st => ({
+            cases: st.cases.map(cc => cc.txId === c.txId ? { ...cc, status: meta.next } : cc)
+          }));
+        },
+      };
+    });
+
+    const rules = s.rules.map(r => ({
+      ...r,
+      trackColor: r.enabled ? '#FF9300' : '#D1D5DB',
+      knobLeft: r.enabled ? '22px' : '2px',
+      onToggle: () => this.setState(st => ({
+        rules: st.rules.map(rr => rr.id === r.id ? { ...rr, enabled: !rr.enabled } : rr)
+      })),
+    }));
+
+    const reports = REPORT_DEFS.map(r => ({
+      ...r,
+      onExport: () => this.showToast(r.name + ' exported'),
+    }));
+
+    return {
+      navItems,
+      viewTitle: viewTitleMap[view],
+      isOverview: view === 'overview',
+      isTransactions: view === 'transactions',
+      isCases: view === 'cases',
+      isRules: view === 'rules',
+      isReports: view === 'reports',
+      kpis,
+      feedTransactions,
+      riskRegions: finalRegions,
+      riskBuckets,
+      txCount,
+      filteredTransactions,
+      filteredCount: filteredTransactions.length,
+      txSearch: s.txSearch,
+      onSearchChange: (e) => this.setState({ txSearch: e.target.value }),
+      txRiskFilter: s.txRiskFilter,
+      onRiskFilterChange: (e) => this.setState({ txRiskFilter: e.target.value }),
+      cases,
+      rules,
+      reports,
+      hasActiveAlerts: activeAlertsCount > 0,
+      activeAlertsCount,
+      liveDotColor: s.liveOn ? '#22C55E' : '#9CA3AF',
+      liveDotAnim: s.liveOn ? 'rm-pulse 1.4s ease-in-out infinite' : 'none',
+      liveStatusLabel: s.liveOn ? 'Live monitoring' : 'Paused',
+      liveToggleLabel: s.liveOn ? 'Pause feed' : 'Resume feed',
+      toggleLive: () => this.setState(st => ({ liveOn: !st.liveOn })),
+      toastMessage: s.toastMessage,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

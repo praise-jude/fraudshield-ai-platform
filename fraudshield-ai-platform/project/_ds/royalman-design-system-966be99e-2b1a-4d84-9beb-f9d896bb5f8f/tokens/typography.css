@@ -1,0 +1,45 @@
+/* ============================================================
+   ROYALMAN DIGITAL CONCEPT — TYPOGRAPHY TOKENS
+   One family: Poppins. Site leans on bold/extrabold display
+   headings and regular body, with leading-relaxed / leading-tight.
+   ============================================================ */
+:root {
+  /* Family */
+  --rm-font: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Weights (Poppins ships 100–900) */
+  --rm-fw-light:      300;  /* @kind font */
+  --rm-fw-regular:    400;  /* @kind font */
+  --rm-fw-medium:     500;  /* @kind font */
+  --rm-fw-semibold:   600;  /* @kind font */
+  --rm-fw-bold:       700;  /* @kind font */
+  --rm-fw-extrabold:  800;  /* @kind font */
+
+  /* Type scale — mirrors the site's Tailwind sizes (px) */
+  --rm-text-xs:    12px;
+  --rm-text-sm:    14px;
+  --rm-text-base:  16px;
+  --rm-text-lg:    18px;
+  --rm-text-xl:    20px;
+  --rm-text-2xl:   24px;   /* card / section headings on mobile */
+  --rm-text-3xl:   30px;   /* section headings */
+  --rm-text-4xl:   36px;   /* hero / page headings */
+  --rm-text-5xl:   45px;   /* large display "We can create any kind of website" */
+
+  /* Line heights */
+  --rm-leading-tight:   1.15;
+  --rm-leading-snug:    1.3;
+  --rm-leading-normal:  1.5;
+  --rm-leading-relaxed: 1.65;
+
+  /* ---- Semantic roles ---- */
+  --rm-display-size:    var(--rm-text-5xl);
+  --rm-display-weight:  var(--rm-fw-extrabold);
+  --rm-h1-size:         var(--rm-text-4xl);
+  --rm-h2-size:         var(--rm-text-3xl);
+  --rm-h3-size:         var(--rm-text-xl);
+  --rm-body-size:       var(--rm-text-base);
+  --rm-body-weight:     var(--rm-fw-regular);
+  --rm-eyebrow-size:    var(--rm-text-sm);
+  --rm-eyebrow-weight:  var(--rm-fw-bold);
+}

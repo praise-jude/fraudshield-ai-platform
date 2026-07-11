@@ -1,0 +1,59 @@
+/* ============================================================
+   ROYALMAN DIGITAL CONCEPT — COLOR TOKENS
+   Ground-truth source: tailwind.config.js (brandOne / brandTwo)
+   plus the Tailwind neutral + accent palette used across the site.
+   ============================================================ */
+:root {
+  /* -- Brand -------------------------------------------------- */
+  --rm-orange: #FF9300;        /* brandOne — primary action, accents, highlights */
+  --rm-blue:   #000F9A;        /* brandTwo — deep royal blue, hover state, headings */
+
+  /* Tints / shades derived for hover & surface use */
+  --rm-orange-600: #E07E00;
+  --rm-blue-800:   #000C7A;
+
+  /* -- Neutrals (Tailwind gray scale, as used on site) -------- */
+  --rm-white:      #FFFFFF;
+  --rm-black:      #000000;
+  --rm-gray-100:   #F3F4F6;    /* section background */
+  --rm-gray-200:   #E5E7EB;    /* card borders */
+  --rm-gray-300:   #D1D5DB;    /* quote marks / muted icons */
+  --rm-gray-500:   #6B7280;
+  --rm-gray-600:   #4B5563;    /* body copy */
+  --rm-gray-700:   #374151;    /* strong body / dark headings */
+  --rm-gray-800:   #1F2937;    /* headings */
+  --rm-gray-950:   #030712;    /* footer bottom bar */
+
+  /* -- Accents (decorative icon colors in Steps/Packages/FAQ) - */
+  --rm-accent-blue:   #3B82F6;
+  --rm-accent-green:  #22C55E;
+  --rm-accent-yellow: #EAB308;
+  --rm-accent-red:    #EF4444;
+  --rm-accent-purple: #A855F7;
+
+  /* -- Overlay ------------------------------------------------ */
+  --rm-overlay-85: rgba(0, 0, 0, 0.85);   /* hero / footer image scrim */
+  --rm-overlay-10: rgba(255, 255, 255, 0.1); /* "Why Choose Us" glass cards */
+
+  /* ===========================================================
+     SEMANTIC ALIASES
+     =========================================================== */
+  --rm-primary:            var(--rm-orange);
+  --rm-primary-hover:      var(--rm-blue);
+  --rm-secondary:          var(--rm-blue);
+
+  --rm-text-heading:       var(--rm-gray-800);
+  --rm-text-body:          var(--rm-gray-600);
+  --rm-text-strong:        var(--rm-gray-700);
+  --rm-text-on-dark:       var(--rm-white);
+  --rm-text-on-primary:    var(--rm-white);
+
+  --rm-surface-page:       var(--rm-white);
+  --rm-surface-muted:      var(--rm-gray-100);
+  --rm-surface-card:       var(--rm-white);
+  --rm-surface-dark:       var(--rm-black);
+
+  --rm-border-card:        var(--rm-gray-200);
+  --rm-link:               var(--rm-orange);
+  --rm-link-hover:         var(--rm-blue);
+}
