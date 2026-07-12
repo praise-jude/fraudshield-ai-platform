@@ -85,6 +85,11 @@ function fmtTime(d: Date): string {
 
 let TX_SEQ = 1;
 
+function makeTransactionId(): string {
+  const rand = Math.random().toString(36).slice(2, 8);
+  return "TX" + Date.now().toString(36) + rand + TX_SEQ++;
+}
+
 export function makeTransaction(): Transaction {
   const country = weightedPick(COUNTRY_DEFS);
   const device = weightedPick(DEVICE_DEFS);
@@ -102,7 +107,7 @@ export function makeTransaction(): Transaction {
   const now = new Date();
 
   return {
-    id: "TX" + TX_SEQ++,
+    id: makeTransactionId(),
     customer: CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)],
     country: country.name,
     device: device.name,

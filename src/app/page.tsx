@@ -9,24 +9,15 @@ import TransactionsView from "@/components/views/TransactionsView";
 import CasesView from "@/components/views/CasesView";
 import RulesView from "@/components/views/RulesView";
 import ReportsView from "@/components/views/ReportsView";
-import { fetchCases, fetchRules, fetchTransactions, insertCase, insertTransaction, insertTransactions, updateCaseStatus, updateRuleEnabled } from "@/lib/db";
-import { REPORT_DEFS, makeTransaction, riskBucket, seedTransactions } from "@/lib/mock";
+import { advanceCase, exportReport, getBootstrap, simulateTransaction, toggleRule } from "@/lib/apiClient";
+import { REPORT_DEFS, riskBucket } from "@/lib/mock";
 import type { CaseRecord, Report, Rule, Transaction, View } from "@/lib/types";
-
-const FALLBACK_RULES: Rule[] = [
-  { id: "r1", name: "Block transactions above ₦500,000", description: "Requires manual approval for any single transaction exceeding this threshold.", enabled: true },
-  { id: "r2", name: "Blacklisted country check", description: "Automatically flags transactions originating from high-risk jurisdictions.", enabled: true },
-  { id: "r3", name: "New device verification", description: "Require additional 2FA when a transaction comes from an unrecognized device.", enabled: true },
-  { id: "r4", name: "Outside business hours flag", description: "Flags large transactions initiated between 12am–6am local time.", enabled: true },
-  { id: "r5", name: "Velocity check", description: "Flags accounts with more than 20 transactions within a 2-minute window.", enabled: true },
-  { id: "r6", name: "Impossible travel detection", description: "Flags logins from two distant locations within an implausible time window.", enabled: true },
-];
 
 export default function Home() {
   const [activeView, setActiveView] = useState<View>("overview");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cases, setCases] = useState<CaseRecord[]>([]);
-  const [rules, setRules] = useState<Rule[]>(FALLBACK_RULES);
+  const [rules, setRules] = useState<Rule[]>([]);
   const [txSearch, setTxSearch] = useState("");
   const [txRiskFilter, setTxRiskFilter] = useState("all");
   const [liveOn, setLiveOn] = useState(true);
@@ -38,34 +29,12 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-
-    async function bootstrap() {
-      const [dbTransactions, dbCases, dbRules] = await Promise.all([
-        fetchTransactions(60),
-        fetchCases(),
-        fetchRules(),
-      ]);
+    getBootstrap().then((data) => {
       if (cancelled) return;
-
-      if (dbTransactions.length > 0) {
-        setTransactions(dbTransactions);
-      } else {
-        const seeded = seedTransactions(24);
-        setTransactions(seeded);
-        void insertTransactions(seeded);
-
-        const highRisk = seeded.filter((t) => t.riskScore > 60).slice(0, 5);
-        const statuses: CaseRecord["status"][] = ["new", "investigating", "new", "resolved", "investigating"];
-        const seededCases = highRisk.map((t, i) => ({ txId: t.id, tx: t, status: statuses[i % statuses.length] }));
-        setCases(seededCases);
-        seededCases.forEach((c) => void insertCase(c.txId, c.status));
-      }
-
-      if (dbCases.length > 0) setCases(dbCases);
-      if (dbRules.length > 0) setRules(dbRules);
-    }
-
-    void bootstrap();
+      setTransactions(data.transactions);
+      setCases(data.cases);
+      setRules(data.rules);
+    });
     return () => {
       cancelled = true;
     };
@@ -74,14 +43,12 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       if (!liveOnRef.current) return;
-      const tx = makeTransaction();
-      void insertTransaction(tx);
-      setTransactions((prev) => [tx, ...prev].slice(0, 60));
-      if (tx.riskScore > 60) {
-        void insertCase(tx.id, "new");
-        const newCase: CaseRecord = { txId: tx.id, tx, status: "new" };
-        setCases((prev) => [newCase, ...prev].slice(0, 20));
-      }
+      void simulateTransaction().then(({ transaction, case: newCase }) => {
+        setTransactions((prev) => [transaction, ...prev].slice(0, 60));
+        if (newCase) {
+          setCases((prev) => [newCase, ...prev].slice(0, 20));
+        }
+      });
     }, 3200);
     return () => clearInterval(timer);
   }, []);
@@ -92,21 +59,20 @@ export default function Home() {
     toastTimer.current = setTimeout(() => setToastMessage(""), 2400);
   }, []);
 
-  const handleAdvanceCase = useCallback((txId: string, currentStatus: CaseRecord["status"]) => {
-    if (currentStatus === "resolved") return;
-    const next: CaseRecord["status"] = currentStatus === "new" ? "investigating" : "resolved";
-    void updateCaseStatus(txId, next);
-    setCases((prev) => prev.map((c) => (c.txId === txId ? { ...c, status: next } : c)));
+  const handleAdvanceCase = useCallback((txId: string) => {
+    void advanceCase(txId).then(({ status }) => {
+      setCases((prev) => prev.map((c) => (c.txId === txId ? { ...c, status } : c)));
+    });
   }, []);
 
   const handleToggleRule = useCallback((id: string, enabled: boolean) => {
-    void updateRuleEnabled(id, enabled);
+    void toggleRule(id, enabled);
     setRules((prev) => prev.map((r) => (r.id === id ? { ...r, enabled } : r)));
   }, []);
 
   const handleExportReport = useCallback(
     (report: Report) => {
-      showToast(`${report.name} exported`);
+      void exportReport(report.id).then(() => showToast(`${report.name} exported`));
     },
     [showToast]
   );

@@ -5,7 +5,7 @@ import type { CaseRecord } from "@/lib/types";
 
 interface CasesViewProps {
   cases: CaseRecord[];
-  onAdvance: (txId: string, currentStatus: CaseRecord["status"]) => void;
+  onAdvance: (txId: string) => void;
 }
 
 const STATUS_META: Record<
@@ -64,7 +64,7 @@ export default function CasesView({ cases, onAdvance }: CasesViewProps) {
               {meta.label}
             </div>
             <div
-              onClick={() => onAdvance(c.txId, c.status)}
+              onClick={() => c.status !== "resolved" && onAdvance(c.txId)}
               className="cursor-pointer whitespace-nowrap rounded-full bg-[#FF9300] px-4 py-2.5 text-[12.5px] font-bold text-white"
             >
               {meta.action}
