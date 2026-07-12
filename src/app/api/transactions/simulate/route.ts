@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
-import { requireSession } from "@/lib/authToken";
+import { requireRole, isAuthedUser } from "@/lib/authGuard";
 import { makeTransaction } from "@/lib/mock";
 import { transactionToRow } from "@/lib/rows";
 import type { CaseRecord } from "@/lib/types";
 
-export async function POST(request: Request) {
-  const unauthorized = requireSession(request);
-  if (unauthorized) return unauthorized;
+export async function POST() {
+  const authed = await requireRole("simulate:transactions");
+  if (!isAuthedUser(authed)) return authed;
 
   const transaction = makeTransaction();
 

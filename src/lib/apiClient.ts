@@ -1,4 +1,4 @@
-import type { CaseRecord, Report, Rule, Transaction } from "./types";
+import type { AuditLogEntry, CaseRecord, Report, Rule, Transaction } from "./types";
 
 interface BootstrapResponse {
   transactions: Transaction[];
@@ -44,4 +44,8 @@ export function exportReport(id: string): Promise<{ report: Report; exportedAt: 
   return fetch(`/api/reports/${encodeURIComponent(id)}/export`, { method: "POST" }).then((res) =>
     json<{ report: Report; exportedAt: string }>(res)
   );
+}
+
+export function getAuditLogs(): Promise<{ entries: AuditLogEntry[] }> {
+  return fetch("/api/audit-logs").then((res) => json<{ entries: AuditLogEntry[] }>(res));
 }

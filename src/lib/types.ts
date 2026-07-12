@@ -1,4 +1,4 @@
-export type View = "overview" | "transactions" | "cases" | "rules" | "reports";
+export type View = "overview" | "transactions" | "cases" | "rules" | "reports" | "audit";
 
 export interface Transaction {
   id: string;
@@ -39,4 +39,15 @@ export interface Report {
   id: string;
   name: string;
   description: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  eventType: string;
+  userId: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  country: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
 }

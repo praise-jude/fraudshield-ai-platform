@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
-import { requireSession } from "@/lib/authToken";
+import { requireRole, isAuthedUser } from "@/lib/authGuard";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const unauthorized = requireSession(request);
-  if (unauthorized) return unauthorized;
+  const authed = await requireRole("manage:rules");
+  if (!isAuthedUser(authed)) return authed;
 
   const { id } = await params;
   const body = await request.json().catch(() => null);

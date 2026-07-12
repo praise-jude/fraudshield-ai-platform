@@ -1,16 +1,22 @@
 "use client";
 
-import { NAV_DEFS } from "@/lib/mock";
 import type { View } from "@/lib/types";
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: string;
+}
+
 interface SidebarProps {
+  navItems: NavItem[];
   activeView: View;
   onNavigate: (view: View) => void;
   liveOn: boolean;
   onToggleLive: () => void;
 }
 
-export default function Sidebar({ activeView, onNavigate, liveOn, onToggleLive }: SidebarProps) {
+export default function Sidebar({ navItems, activeView, onNavigate, liveOn, onToggleLive }: SidebarProps) {
   return (
     <div className="flex w-[240px] flex-none flex-col gap-7 bg-[#030712] p-4 py-6">
       <div className="flex items-center gap-2.5 px-2">
@@ -23,7 +29,7 @@ export default function Sidebar({ activeView, onNavigate, liveOn, onToggleLive }
       </div>
 
       <div className="flex flex-col gap-0.5">
-        {NAV_DEFS.map((item) => {
+        {navItems.map((item) => {
           const active = item.id === activeView;
           return (
             <div
