@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { requireSession } from "@/lib/authToken";
 import { REPORT_DEFS } from "@/lib/mock";
 
-export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = requireSession(request);
+  if (unauthorized) return unauthorized;
+
   const { id } = await params;
   const report = REPORT_DEFS.find((r) => r.id === id);
 

@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { requireSession } from "@/lib/authToken";
 import { makeTransaction } from "@/lib/mock";
 import { transactionToRow } from "@/lib/rows";
 import type { CaseRecord } from "@/lib/types";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const unauthorized = requireSession(request);
+  if (unauthorized) return unauthorized;
+
   const transaction = makeTransaction();
 
   const { error: txError } = await supabaseServer

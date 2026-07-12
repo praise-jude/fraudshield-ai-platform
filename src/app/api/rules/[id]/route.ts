@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { requireSession } from "@/lib/authToken";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const unauthorized = requireSession(request);
+  if (unauthorized) return unauthorized;
+
   const { id } = await params;
   const body = await request.json().catch(() => null);
 

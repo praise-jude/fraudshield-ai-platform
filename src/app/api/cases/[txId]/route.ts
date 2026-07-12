@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { requireSession } from "@/lib/authToken";
 import type { CaseRecord } from "@/lib/types";
 
 const NEXT_STATUS: Record<CaseRecord["status"], CaseRecord["status"]> = {
@@ -8,7 +9,10 @@ const NEXT_STATUS: Record<CaseRecord["status"], CaseRecord["status"]> = {
   resolved: "resolved",
 };
 
-export async function PATCH(_request: Request, { params }: { params: Promise<{ txId: string }> }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ txId: string }> }) {
+  const unauthorized = requireSession(request);
+  if (unauthorized) return unauthorized;
+
   const { txId } = await params;
 
   const { data: existing, error: fetchError } = await supabaseServer
