@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ensureOrganizationProvisioned } from "@/lib/orgProvisioning";
 import DashboardClient from "@/components/DashboardClient";
 import type { Role } from "@/lib/permissions";
 
@@ -13,15 +14,29 @@ export default async function Home() {
     redirect("/auth/sign-in");
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("fraudshield_profiles")
     .select("role, full_name")
     .eq("id", user.id)
     .maybeSingle();
 
   if (!profile) {
-    // Auth succeeded but org provisioning hasn't completed yet (e.g. email not
-    // confirmed via /auth/callback) — send them back into the sign-in flow.
+    // A session can exist with no profile row if org-provisioning never ran
+    // for this user (e.g. the RPC failed, or the schema didn't exist yet at
+    // confirmation time). Self-heal using the registration data stashed in
+    // their user_metadata at sign-up, rather than relying solely on
+    // /auth/callback having run it successfully.
+    const provisioned = await ensureOrganizationProvisioned(supabase, user);
+    if (provisioned) {
+      ({ data: profile } = await supabase
+        .from("fraudshield_profiles")
+        .select("role, full_name")
+        .eq("id", user.id)
+        .maybeSingle());
+    }
+  }
+
+  if (!profile) {
     redirect("/auth/sign-in?error=incomplete_registration");
   }
 
