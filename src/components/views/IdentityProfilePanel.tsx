@@ -54,7 +54,7 @@ export default function IdentityProfilePanel({ customer, onClose, onSelectIdenti
 
         {profile && (
           <div className="flex flex-col gap-6">
-            <section className="grid grid-cols-3 gap-3">
+            <section className="grid grid-cols-3 gap-2 sm:gap-3">
               <div className="rounded-lg border border-[#E5E7EB] p-3 dark:border-white/10">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.03em] text-[#6B7280]">
                   Transactions

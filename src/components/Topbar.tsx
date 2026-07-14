@@ -15,9 +15,10 @@ interface TopbarProps {
   activeAlertsCount: number;
   userName: string;
   userInitials: string;
+  onOpenSidebar: () => void;
 }
 
-export default function Topbar({ title, activeAlertsCount, userName, userInitials }: TopbarProps) {
+export default function Topbar({ title, activeAlertsCount, userName, userInitials, onOpenSidebar }: TopbarProps) {
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -30,8 +31,17 @@ export default function Topbar({ title, activeAlertsCount, userName, userInitial
   }
 
   return (
-    <div className="flex h-16 flex-none items-center justify-between border-b border-[#E5E7EB] bg-white px-7 dark:border-white/10 dark:bg-[#111827]">
-      <div className="text-[18px] font-bold text-[#1F2937] dark:text-white">{title}</div>
+    <div className="flex h-16 flex-none items-center justify-between border-b border-[#E5E7EB] bg-white px-4 md:px-7 dark:border-white/10 dark:bg-[#111827]">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onOpenSidebar}
+          aria-label="Open menu"
+          className="text-[18px] text-[#4B5563] md:hidden dark:text-white/60"
+        >
+          <i className="fa-solid fa-bars" />
+        </button>
+        <div className="text-[18px] font-bold text-[#1F2937] dark:text-white">{title}</div>
+      </div>
       <div className="flex items-center gap-4.5">
         {mounted && (
           <button
@@ -55,7 +65,7 @@ export default function Topbar({ title, activeAlertsCount, userName, userInitial
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#000F9A] text-[13px] font-bold text-white">
               {userInitials}
             </div>
-            <div className="text-[13px] font-semibold text-[#1F2937] dark:text-white">{userName}</div>
+            <div className="hidden text-[13px] font-semibold text-[#1F2937] sm:block dark:text-white">{userName}</div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleSignOut}>

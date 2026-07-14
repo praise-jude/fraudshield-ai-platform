@@ -72,8 +72,8 @@ export default function RulesView({ rules, onToggle, onUpdate, onCreate }: Rules
             key={rule.id}
             className="flex flex-col gap-3 rounded-lg border border-[#E5E7EB] bg-white px-5.5 py-4.5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#111827]"
           >
-            <div className="flex items-center gap-4.5">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-0 flex-1">
                 <div className="text-[14px] font-bold text-[#1F2937] dark:text-white">{rule.name}</div>
                 <div className="mt-[3px] text-[12.5px] text-[#6B7280]">{rule.description}</div>
                 {rule.ruleType && (

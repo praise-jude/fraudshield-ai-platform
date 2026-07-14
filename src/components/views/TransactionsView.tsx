@@ -24,8 +24,8 @@ export default function TransactionsView({
 }: TransactionsViewProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <div className="relative max-w-[320px] flex-1">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-none flex-1 sm:max-w-[320px]">
           <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] text-[#9CA3AF]" />
           <input
             value={search}
@@ -50,8 +50,8 @@ export default function TransactionsView({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]">
-        <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr_0.8fr_0.9fr] gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.03em] text-[#6B7280]">
+      <div className="overflow-x-auto rounded-lg border border-[#E5E7EB] bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]">
+        <div className="grid min-w-[720px] grid-cols-[1.6fr_1fr_1fr_1fr_0.8fr_0.9fr] gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.03em] text-[#6B7280]">
           <div>Customer</div>
           <div>Country</div>
           <div>Device / IP</div>
@@ -65,7 +65,7 @@ export default function TransactionsView({
             return (
               <div
                 key={tx.id}
-                className="grid grid-cols-[1.6fr_1fr_1fr_1fr_0.8fr_0.9fr] items-center gap-3 border-b border-[#F3F4F6] px-5 py-3.5 text-[13px]"
+                className="grid min-w-[720px] grid-cols-[1.6fr_1fr_1fr_1fr_0.8fr_0.9fr] items-center gap-3 border-b border-[#F3F4F6] px-5 py-3.5 text-[13px]"
               >
                 <div>
                   {onSelectIdentity ? (

@@ -46,7 +46,7 @@ export default function OverviewView({
 }: OverviewViewProps) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
@@ -71,7 +71,7 @@ export default function OverviewView({
         ))}
       </div>
 
-      <div className="grid grid-cols-[1.6fr_1fr] items-start gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.6fr_1fr]">
         <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]">
           <div className="flex items-center justify-between border-b border-[#E5E7EB] px-5 py-[18px]">
             <div className="text-[15px] font-bold text-[#1F2937]">Live Transaction Feed</div>

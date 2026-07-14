@@ -24,8 +24,8 @@ export default function AuditLogView({ entries, loading }: AuditLogViewProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#111827]">
-      <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_1.4fr] gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.03em] text-[#6B7280] dark:border-white/10 dark:bg-white/5">
+    <div className="overflow-x-auto rounded-lg border border-[#E5E7EB] bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#111827]">
+      <div className="grid min-w-[600px] grid-cols-[1.2fr_1fr_1fr_1fr_1.4fr] gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.03em] text-[#6B7280] dark:border-white/10 dark:bg-white/5">
         <div>Event</div>
         <div>IP address</div>
         <div>Country</div>
@@ -39,7 +39,7 @@ export default function AuditLogView({ entries, loading }: AuditLogViewProps) {
         {entries.map((entry) => (
           <div
             key={entry.id}
-            className="grid grid-cols-[1.2fr_1fr_1fr_1fr_1.4fr] items-center gap-3 border-b border-[#F3F4F6] px-5 py-3.5 text-[13px] dark:border-white/5"
+            className="grid min-w-[600px] grid-cols-[1.2fr_1fr_1fr_1fr_1.4fr] items-center gap-3 border-b border-[#F3F4F6] px-5 py-3.5 text-[13px] dark:border-white/5"
           >
             <div className="font-semibold text-[#1F2937] dark:text-white">
               {EVENT_LABELS[entry.eventType] ?? entry.eventType}

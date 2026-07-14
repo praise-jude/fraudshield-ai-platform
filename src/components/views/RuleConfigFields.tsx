@@ -50,7 +50,7 @@ interface Props {
 export default function RuleConfigFields({ state, onChange }: Props) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label>Rule name</Label>
           <Input value={state.name} onChange={(e) => onChange({ ...state, name: e.target.value })} />
@@ -93,7 +93,7 @@ export default function RuleConfigFields({ state, onChange }: Props) {
         </div>
       )}
       {state.ruleType === "velocity_count" && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label>Max transactions</Label>
             <Input

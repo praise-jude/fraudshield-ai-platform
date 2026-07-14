@@ -58,6 +58,7 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
   const [liveOn, setLiveOn] = useState(canSimulate);
   const [toastMessage, setToastMessage] = useState("");
   const [openIdentity, setOpenIdentity] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const liveOnRef = useRef(liveOn);
   liveOnRef.current = liveOn;
@@ -247,6 +248,8 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
         onNavigate={setActiveView}
         liveOn={liveOn}
         onToggleLive={() => setLiveOn((v) => !v)}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="flex h-screen min-w-0 flex-1 flex-col">
@@ -255,9 +258,10 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
           activeAlertsCount={activeAlertsCount}
           userName={userName}
           userInitials={userInitials}
+          onOpenSidebar={() => setSidebarOpen(true)}
         />
 
-        <div className="flex-1 overflow-y-auto p-7">
+        <div className="flex-1 overflow-y-auto p-4 md:p-7">
           {activeView === "overview" && (
             <OverviewView
               kpis={kpis}

@@ -83,7 +83,7 @@ export default function SignUpPage() {
             htmlFor="businessRegistrationNumber"
             register={register("businessRegistrationNumber")}
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField label="Country" htmlFor="country" register={register("country")} error={errors.country?.message} />
             <FormField label="State (optional)" htmlFor="state" register={register("state")} />
           </div>
@@ -95,7 +95,7 @@ export default function SignUpPage() {
             register={register("officialEmail")}
             error={errors.officialEmail?.message}
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField label="Phone (optional)" htmlFor="phone" register={register("phone")} />
             <FormField
               label="Website (optional)"

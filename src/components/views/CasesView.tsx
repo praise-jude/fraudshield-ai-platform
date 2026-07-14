@@ -38,7 +38,7 @@ export default function CasesView({ cases, onAdvance, onSelectIdentity }: CasesV
           <div
             key={c.txId}
             onClick={() => setOpenTxId(c.txId)}
-            className="flex cursor-pointer items-center gap-4.5 rounded-lg border border-[#E5E7EB] bg-white px-5.5 py-4.5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#111827]"
+            className="flex flex-wrap cursor-pointer items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white px-5.5 py-4.5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] sm:gap-4.5 dark:border-white/10 dark:bg-[#111827]"
           >
             <div
               className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-lg"
