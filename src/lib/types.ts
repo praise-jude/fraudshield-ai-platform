@@ -1,4 +1,4 @@
-export type View = "overview" | "transactions" | "cases" | "rules" | "reports" | "audit";
+export type View = "overview" | "transactions" | "cases" | "rules" | "reports" | "audit" | "identities";
 
 export interface RiskFactor {
   code: string;
@@ -94,4 +94,36 @@ export interface CaseDetail {
   notes: CaseNote[];
   events: CaseEvent[];
   linkedActivity: LinkedActivity[];
+}
+
+export interface IdentitySummary {
+  customer: string;
+  transactionCount: number;
+  avgRiskScore: number;
+  maxRiskScore: number;
+  lastSeen: string;
+  matchedOn: "customer" | "device" | "ip";
+}
+
+export interface RelatedIdentity {
+  customer: string;
+  sharedVia: "device" | "ip";
+  sharedValue: string;
+  transactionCount: number;
+  maxRiskScore: number;
+}
+
+export interface IdentityProfile {
+  customer: string;
+  stats: {
+    transactionCount: number;
+    avgRiskScore: number;
+    maxRiskScore: number;
+    devices: string[];
+    ips: string[];
+    countries: string[];
+  };
+  transactions: Transaction[];
+  cases: CaseRecord[];
+  relatedIdentities: RelatedIdentity[];
 }

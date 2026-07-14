@@ -296,6 +296,7 @@ export const NAV_DEFS: { id: string; label: string; icon: string; permission: Pe
   { id: "overview", label: "Overview", icon: "fa-solid fa-gauge-high", permission: "view:overview" },
   { id: "transactions", label: "Transactions", icon: "fa-solid fa-arrow-right-arrow-left", permission: "view:transactions" },
   { id: "cases", label: "Case Management", icon: "fa-solid fa-folder-open", permission: "view:cases" },
+  { id: "identities", label: "Identity Search", icon: "fa-solid fa-user-magnifying-glass", permission: "view:identities" },
   { id: "rules", label: "Rules Engine", icon: "fa-solid fa-list-check", permission: "view:rules" },
   { id: "reports", label: "Reports", icon: "fa-solid fa-file-lines", permission: "view:reports" },
   { id: "audit", label: "Audit Log", icon: "fa-solid fa-clipboard-list", permission: "view:audit_log" },

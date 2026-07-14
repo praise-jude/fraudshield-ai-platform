@@ -4,6 +4,8 @@ import type {
   CaseNote,
   CaseRecord,
   CaseResolution,
+  IdentityProfile,
+  IdentitySummary,
   Report,
   Rule,
   RuleType,
@@ -99,4 +101,16 @@ export function exportReport(id: string): Promise<{ report: Report; exportedAt: 
 
 export function getAuditLogs(): Promise<{ entries: AuditLogEntry[] }> {
   return fetch("/api/audit-logs").then((res) => json<{ entries: AuditLogEntry[] }>(res));
+}
+
+export function searchIdentities(q: string): Promise<{ results: IdentitySummary[] }> {
+  return fetch(`/api/identities/search?q=${encodeURIComponent(q)}`).then((res) =>
+    json<{ results: IdentitySummary[] }>(res)
+  );
+}
+
+export function getIdentityProfile(customer: string): Promise<{ profile: IdentityProfile }> {
+  return fetch(`/api/identities/${encodeURIComponent(customer)}`).then((res) =>
+    json<{ profile: IdentityProfile }>(res)
+  );
 }

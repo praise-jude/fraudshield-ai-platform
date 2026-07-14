@@ -10,6 +10,7 @@ interface TransactionsViewProps {
   onSearchChange: (value: string) => void;
   riskFilter: string;
   onRiskFilterChange: (value: string) => void;
+  onSelectIdentity?: (customer: string) => void;
 }
 
 export default function TransactionsView({
@@ -19,6 +20,7 @@ export default function TransactionsView({
   onSearchChange,
   riskFilter,
   onRiskFilterChange,
+  onSelectIdentity,
 }: TransactionsViewProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -66,7 +68,16 @@ export default function TransactionsView({
                 className="grid grid-cols-[1.6fr_1fr_1fr_1fr_0.8fr_0.9fr] items-center gap-3 border-b border-[#F3F4F6] px-5 py-3.5 text-[13px]"
               >
                 <div>
-                  <div className="font-semibold text-[#1F2937]">{tx.customer}</div>
+                  {onSelectIdentity ? (
+                    <button
+                      onClick={() => onSelectIdentity(tx.customer)}
+                      className="font-semibold text-[#1F2937] hover:text-[#FF9300] hover:underline"
+                    >
+                      {tx.customer}
+                    </button>
+                  ) : (
+                    <div className="font-semibold text-[#1F2937]">{tx.customer}</div>
+                  )}
                   <div className="text-[11px] text-[#9CA3AF]">{tx.time}</div>
                 </div>
                 <div className="text-[#374151]">{tx.country}</div>

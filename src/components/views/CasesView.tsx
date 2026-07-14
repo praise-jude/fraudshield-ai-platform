@@ -8,6 +8,7 @@ import CaseDetailPanel from "./CaseDetailPanel";
 interface CasesViewProps {
   cases: CaseRecord[];
   onAdvance: (txId: string, resolution?: CaseResolution) => void;
+  onSelectIdentity?: (customer: string) => void;
 }
 
 const STATUS_META: Record<
@@ -25,7 +26,7 @@ const RESOLUTION_LABELS: Record<CaseResolution, string> = {
   resolved_legitimate: "Legitimate",
 };
 
-export default function CasesView({ cases, onAdvance }: CasesViewProps) {
+export default function CasesView({ cases, onAdvance, onSelectIdentity }: CasesViewProps) {
   const [openTxId, setOpenTxId] = useState<string | null>(null);
 
   return (
@@ -47,7 +48,20 @@ export default function CasesView({ cases, onAdvance }: CasesViewProps) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[14px] font-bold text-[#1F2937] dark:text-white">
-                {c.tx.customer} &middot; {c.tx.amountDisplay}
+                {onSelectIdentity ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectIdentity(c.tx.customer);
+                    }}
+                    className="hover:text-[#FF9300] hover:underline"
+                  >
+                    {c.tx.customer}
+                  </button>
+                ) : (
+                  c.tx.customer
+                )}{" "}
+                &middot; {c.tx.amountDisplay}
               </div>
               <div className="mt-0.5 text-[12.5px] text-[#6B7280]">
                 {c.tx.country} &middot; {c.tx.device} &middot; {c.tx.ip}

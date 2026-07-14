@@ -10,6 +10,8 @@ import CasesView from "@/components/views/CasesView";
 import RulesView from "@/components/views/RulesView";
 import ReportsView from "@/components/views/ReportsView";
 import AuditLogView from "@/components/views/AuditLogView";
+import IdentitySearchView from "@/components/views/IdentitySearchView";
+import IdentityProfilePanel from "@/components/views/IdentityProfilePanel";
 import {
   advanceCase,
   createRule,
@@ -37,11 +39,13 @@ const VIEW_TITLES: Record<View, string> = {
   rules: "Rules Engine",
   reports: "Reports",
   audit: "Audit Log",
+  identities: "Identity Search",
 };
 
 export default function DashboardClient({ role, userName, userInitials }: DashboardClientProps) {
   const visibleNav = useMemo(() => NAV_DEFS.filter((item) => hasPermission(role, item.permission)), [role]);
   const canSimulate = hasPermission(role, "simulate:transactions");
+  const canViewIdentities = hasPermission(role, "view:identities");
 
   const [activeView, setActiveView] = useState<View>((visibleNav[0]?.id as View) ?? "overview");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -53,6 +57,7 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
   const [txRiskFilter, setTxRiskFilter] = useState("all");
   const [liveOn, setLiveOn] = useState(canSimulate);
   const [toastMessage, setToastMessage] = useState("");
+  const [openIdentity, setOpenIdentity] = useState<string | null>(null);
 
   const liveOnRef = useRef(liveOn);
   liveOnRef.current = liveOn;
@@ -271,9 +276,16 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
               onSearchChange={setTxSearch}
               riskFilter={txRiskFilter}
               onRiskFilterChange={setTxRiskFilter}
+              onSelectIdentity={canViewIdentities ? setOpenIdentity : undefined}
             />
           )}
-          {activeView === "cases" && <CasesView cases={cases} onAdvance={handleAdvanceCase} />}
+          {activeView === "cases" && (
+            <CasesView
+              cases={cases}
+              onAdvance={handleAdvanceCase}
+              onSelectIdentity={canViewIdentities ? setOpenIdentity : undefined}
+            />
+          )}
           {activeView === "rules" && (
             <RulesView rules={rules} onToggle={handleToggleRule} onUpdate={handleUpdateRule} onCreate={handleCreateRule} />
           )}
@@ -281,8 +293,17 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
             <ReportsView reports={REPORT_DEFS as Report[]} onExport={handleExportReport} />
           )}
           {activeView === "audit" && <AuditLogView entries={auditEntries} loading={auditLoading} />}
+          {activeView === "identities" && <IdentitySearchView onSelectIdentity={setOpenIdentity} />}
         </div>
       </div>
+
+      {openIdentity && (
+        <IdentityProfilePanel
+          customer={openIdentity}
+          onClose={() => setOpenIdentity(null)}
+          onSelectIdentity={setOpenIdentity}
+        />
+      )}
 
       <Toast message={toastMessage} />
     </div>
