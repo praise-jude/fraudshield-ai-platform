@@ -1,4 +1,14 @@
-import type { AuditLogEntry, CaseRecord, Report, Rule, Transaction } from "./types";
+import type {
+  AuditLogEntry,
+  CaseDetail,
+  CaseNote,
+  CaseRecord,
+  CaseResolution,
+  Report,
+  Rule,
+  RuleType,
+  Transaction,
+} from "./types";
 
 interface BootstrapResponse {
   transactions: Transaction[];
@@ -26,18 +36,59 @@ export function simulateTransaction(): Promise<SimulateResponse> {
   );
 }
 
-export function advanceCase(txId: string): Promise<{ txId: string; status: CaseRecord["status"] }> {
-  return fetch(`/api/cases/${encodeURIComponent(txId)}`, { method: "PATCH" }).then((res) =>
-    json<{ txId: string; status: CaseRecord["status"] }>(res)
-  );
+export function advanceCase(
+  txId: string,
+  resolution?: CaseResolution
+): Promise<{ txId: string; status: CaseRecord["status"]; resolution: CaseResolution | null }> {
+  return fetch(`/api/cases/${encodeURIComponent(txId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resolution }),
+  }).then((res) => json<{ txId: string; status: CaseRecord["status"]; resolution: CaseResolution | null }>(res));
 }
 
-export function toggleRule(id: string, enabled: boolean): Promise<{ id: string; enabled: boolean }> {
+export function getCaseDetail(txId: string): Promise<CaseDetail> {
+  return fetch(`/api/cases/${encodeURIComponent(txId)}`).then((res) => json<CaseDetail>(res));
+}
+
+export function addCaseNote(txId: string, note: string): Promise<{ note: CaseNote }> {
+  return fetch(`/api/cases/${encodeURIComponent(txId)}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ note }),
+  }).then((res) => json<{ note: CaseNote }>(res));
+}
+
+export function toggleRule(id: string, enabled: boolean): Promise<{ rule: Rule }> {
   return fetch(`/api/rules/${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ enabled }),
-  }).then((res) => json<{ id: string; enabled: boolean }>(res));
+  }).then((res) => json<{ rule: Rule }>(res));
+}
+
+export function updateRule(
+  id: string,
+  fields: { name?: string; description?: string; ruleType?: RuleType; config?: Record<string, unknown> }
+): Promise<{ rule: Rule }> {
+  return fetch(`/api/rules/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  }).then((res) => json<{ rule: Rule }>(res));
+}
+
+export function createRule(fields: {
+  name: string;
+  description: string;
+  ruleType: RuleType;
+  config: Record<string, unknown>;
+}): Promise<{ rule: Rule }> {
+  return fetch("/api/rules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  }).then((res) => json<{ rule: Rule }>(res));
 }
 
 export function exportReport(id: string): Promise<{ report: Report; exportedAt: string }> {

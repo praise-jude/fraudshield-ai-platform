@@ -1,4 +1,4 @@
-import type { RiskBucketMeta, Transaction } from "./types";
+import type { RiskBucketMeta, RiskFactor, Rule, Transaction } from "./types";
 import type { Permission } from "./permissions";
 
 interface WeightedDef {
@@ -91,44 +91,197 @@ function makeTransactionId(): string {
   return "TX" + Date.now().toString(36) + rand + TX_SEQ++;
 }
 
-export function makeTransaction(): Transaction {
+/** The randomly-generated shape of a transaction, before any scoring is applied. */
+export interface RawTransaction {
+  id: string;
+  customer: string;
+  country: string;
+  countryRisky: boolean;
+  device: string;
+  deviceIcon: string;
+  deviceRisky: boolean;
+  ip: string;
+  currencyCode: string;
+  currencySymbol: string;
+  amount: number;
+  amountDisplay: string;
+  time: string;
+  createdAt: number;
+}
+
+export function generateRawTransaction(): RawTransaction {
   const country = weightedPick(COUNTRY_DEFS);
   const device = weightedPick(DEVICE_DEFS);
   const currency = weightedPick(CURRENCIES);
   const amount = Math.round(currency.min + Math.random() * (currency.max - currency.min));
-
-  let score = 5 + Math.random() * 20;
-  if (country.risky) score += 38;
-  if (device.risky) score += 28;
-  if (currency.code !== "NGN" && amount > currency.max * 0.7) score += 12;
-  if (currency.code === "NGN" && amount > 1500000) score += 15;
-  score = Math.max(2, Math.min(99, Math.round(score)));
-
-  const bucket = riskBucket(score);
   const now = new Date();
 
   return {
     id: makeTransactionId(),
     customer: CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)],
     country: country.name,
+    countryRisky: country.risky,
     device: device.name,
     deviceIcon: device.icon,
+    deviceRisky: device.risky,
     ip: randIp(country.risky || device.risky),
+    currencyCode: currency.code,
     currencySymbol: currency.symbol,
     amount,
     amountDisplay: currency.symbol + amount.toLocaleString("en-US"),
-    riskScore: score,
-    statusLabel: score > 80 ? "BLOCKED" : bucket.label.toUpperCase(),
     time: fmtTime(now),
     createdAt: now.getTime(),
   };
 }
 
-export function seedTransactions(n: number): Transaction[] {
+interface ScoredTransaction {
+  score: number;
+  statusLabel: string;
+  factors: RiskFactor[];
+}
+
+/**
+ * Explainable, rule-driven scoring. Two kinds of factors:
+ *  - base factors (always evaluated): a small baseline variance, plus fixed
+ *    penalties for a risky country/device pick — these apply regardless of
+ *    configured rules, so scoring is never a no-op with zero rules enabled.
+ *  - rule factors: each enabled org rule is evaluated against the raw
+ *    transaction (and, for velocity, recent same-customer activity) and adds
+ *    its own factor when triggered. Toggling/editing a rule genuinely
+ *    changes scoring output.
+ */
+export function scoreTransaction(
+  raw: RawTransaction,
+  rules: Rule[],
+  recentSameCustomerCount: number
+): ScoredTransaction {
+  const factors: RiskFactor[] = [];
+
+  const baseline = Math.round(5 + Math.random() * 20);
+  factors.push({ code: "baseline", label: "Baseline model variance", weight: baseline });
+
+  if (raw.countryRisky) {
+    factors.push({ code: "high_risk_country", label: `Originates from ${raw.country}`, weight: 38 });
+  }
+  if (raw.deviceRisky) {
+    factors.push({ code: "unrecognized_device", label: `Unrecognized device type: ${raw.device}`, weight: 28 });
+  }
+
+  for (const rule of rules) {
+    if (!rule.enabled || !rule.ruleType) continue;
+    const config = rule.config ?? {};
+
+    if (rule.ruleType === "amount_threshold" && raw.currencyCode === "NGN") {
+      const threshold = Number(config.threshold ?? Infinity);
+      if (raw.amount > threshold) {
+        factors.push({
+          code: `rule:${rule.id}`,
+          label: `${rule.name}: ${raw.amountDisplay} exceeds ₦${threshold.toLocaleString("en-US")}`,
+          weight: 25,
+        });
+      }
+    } else if (rule.ruleType === "country_risk") {
+      const countries = Array.isArray(config.countries) ? (config.countries as string[]) : [];
+      if (countries.includes(raw.country)) {
+        factors.push({ code: `rule:${rule.id}`, label: `${rule.name}: ${raw.country}`, weight: 30 });
+      }
+    } else if (rule.ruleType === "device_risk") {
+      const devices = Array.isArray(config.devices) ? (config.devices as string[]) : [];
+      if (devices.includes(raw.device)) {
+        factors.push({ code: `rule:${rule.id}`, label: `${rule.name}: ${raw.device}`, weight: 20 });
+      }
+    } else if (rule.ruleType === "velocity_count") {
+      const maxCount = Number(config.maxCount ?? Infinity);
+      const windowMinutes = Number(config.windowMinutes ?? 0);
+      if (recentSameCustomerCount >= maxCount) {
+        factors.push({
+          code: `rule:${rule.id}`,
+          label: `${rule.name}: ${recentSameCustomerCount} transactions in ${windowMinutes}m`,
+          weight: 35,
+        });
+      }
+    }
+  }
+
+  const score = Math.max(2, Math.min(99, factors.reduce((sum, f) => sum + f.weight, 0)));
+  const bucket = riskBucket(score);
+
+  return {
+    score,
+    statusLabel: score > 80 ? "BLOCKED" : bucket.label.toUpperCase(),
+    factors,
+  };
+}
+
+export function assembleTransaction(raw: RawTransaction, scored: ScoredTransaction): Transaction {
+  return {
+    id: raw.id,
+    customer: raw.customer,
+    country: raw.country,
+    device: raw.device,
+    deviceIcon: raw.deviceIcon,
+    ip: raw.ip,
+    currencySymbol: raw.currencySymbol,
+    amount: raw.amount,
+    amountDisplay: raw.amountDisplay,
+    riskScore: scored.score,
+    statusLabel: scored.statusLabel,
+    riskFactors: scored.factors,
+    time: raw.time,
+    createdAt: raw.createdAt,
+  };
+}
+
+/** Convenience for callers that don't need to inspect the raw shape separately. */
+export function makeTransaction(rules: Rule[] = [], recentSameCustomerCount = 0): Transaction {
+  const raw = generateRawTransaction();
+  const scored = scoreTransaction(raw, rules, recentSameCustomerCount);
+  return assembleTransaction(raw, scored);
+}
+
+export function seedTransactions(n: number, rules: Rule[] = []): Transaction[] {
+  const perCustomerCount = new Map<string, number>();
   const arr: Transaction[] = [];
-  for (let i = 0; i < n; i++) arr.push(makeTransaction());
+  for (let i = 0; i < n; i++) {
+    const raw = generateRawTransaction();
+    const recentCount = (perCustomerCount.get(raw.customer) ?? 0) + 1;
+    perCustomerCount.set(raw.customer, recentCount);
+    const scored = scoreTransaction(raw, rules, recentCount);
+    arr.push(assembleTransaction(raw, scored));
+  }
   return arr;
 }
+
+export const DEFAULT_RULES: Array<Pick<Rule, "name" | "description" | "enabled" | "ruleType" | "config">> = [
+  {
+    name: "Large transaction amount",
+    description: "Flags NGN transactions above a configured amount threshold.",
+    enabled: true,
+    ruleType: "amount_threshold",
+    config: { threshold: 500000 },
+  },
+  {
+    name: "High-risk country",
+    description: "Flags transactions originating from configured high-risk countries.",
+    enabled: true,
+    ruleType: "country_risk",
+    config: { countries: ["Russia", "Unknown (VPN)"] },
+  },
+  {
+    name: "Unrecognized device",
+    description: "Flags transactions from configured risky device types.",
+    enabled: true,
+    ruleType: "device_risk",
+    config: { devices: ["Emulator", "Unknown"] },
+  },
+  {
+    name: "Velocity check",
+    description: "Flags a customer exceeding a configured transaction count within a time window.",
+    enabled: true,
+    ruleType: "velocity_count",
+    config: { windowMinutes: 2, maxCount: 5 },
+  },
+];
 
 export const REPORT_DEFS = [
   { id: "rep1", name: "Daily Fraud Report", description: "Summary of all flagged and blocked transactions in the last 24 hours." },

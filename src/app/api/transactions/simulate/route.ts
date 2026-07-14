@@ -1,19 +1,35 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabaseServer";
 import { requireRole, isAuthedUser } from "@/lib/authGuard";
-import { makeTransaction } from "@/lib/mock";
-import { transactionToRow } from "@/lib/rows";
+import { createClient } from "@/lib/supabase/server";
+import { assembleTransaction, generateRawTransaction, scoreTransaction } from "@/lib/mock";
+import { transactionToRow, rowToRule, type RuleRow } from "@/lib/rows";
 import type { CaseRecord } from "@/lib/types";
 
 export async function POST() {
   const authed = await requireRole("simulate:transactions");
   if (!isAuthedUser(authed)) return authed;
+  const { orgId } = authed;
 
-  const transaction = makeTransaction();
+  const supabase = await createClient();
+  const raw = generateRawTransaction();
 
-  const { error: txError } = await supabaseServer
+  const [{ data: ruleRows }, { count: recentCount }] = await Promise.all([
+    supabase.from("fraudshield_rules").select("*").eq("org_id", orgId).eq("enabled", true),
+    supabase
+      .from("fraudshield_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("customer", raw.customer)
+      .gte("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString()),
+  ]);
+
+  const rules = ((ruleRows as RuleRow[] | null) ?? []).map(rowToRule);
+  const scored = scoreTransaction(raw, rules, (recentCount ?? 0) + 1);
+  const transaction = assembleTransaction(raw, scored);
+
+  const { error: txError } = await supabase
     .from("fraudshield_transactions")
-    .insert(transactionToRow(transaction));
+    .insert(transactionToRow(transaction, orgId));
   if (txError) {
     console.error("insert transaction failed", txError);
     return NextResponse.json({ error: "Failed to record transaction" }, { status: 500 });
@@ -21,11 +37,18 @@ export async function POST() {
 
   let caseRecord: CaseRecord | null = null;
   if (transaction.riskScore > 60) {
-    const { error: caseError } = await supabaseServer
+    const { error: caseError } = await supabase
       .from("fraudshield_cases")
-      .insert({ tx_id: transaction.id, status: "new" });
+      .insert({ tx_id: transaction.id, status: "new", org_id: orgId });
     if (!caseError) {
       caseRecord = { txId: transaction.id, tx: transaction, status: "new" };
+      await supabase.from("fraudshield_case_events").insert({
+        tx_id: transaction.id,
+        org_id: orgId,
+        event_type: "case_created",
+        actor_name: "System",
+        detail: { riskScore: transaction.riskScore },
+      });
     }
   }
 

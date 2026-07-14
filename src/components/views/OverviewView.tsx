@@ -110,6 +110,7 @@ export default function OverviewView({
                   <div
                     className="whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold"
                     style={{ background: bg, color }}
+                    title={tx.riskFactors.map((f) => `${f.label} (+${f.weight})`).join("\n")}
                   >
                     {tx.statusLabel}
                   </div>

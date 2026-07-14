@@ -12,15 +12,17 @@ import ReportsView from "@/components/views/ReportsView";
 import AuditLogView from "@/components/views/AuditLogView";
 import {
   advanceCase,
+  createRule,
   exportReport,
   getAuditLogs,
   getBootstrap,
   simulateTransaction,
   toggleRule,
+  updateRule,
 } from "@/lib/apiClient";
 import { NAV_DEFS, REPORT_DEFS, riskBucket } from "@/lib/mock";
 import { hasPermission, type Role } from "@/lib/permissions";
-import type { AuditLogEntry, CaseRecord, Report, Rule, Transaction, View } from "@/lib/types";
+import type { AuditLogEntry, CaseRecord, CaseResolution, Report, Rule, RuleType, Transaction, View } from "@/lib/types";
 
 interface DashboardClientProps {
   role: Role;
@@ -105,9 +107,11 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
     toastTimer.current = setTimeout(() => setToastMessage(""), 2400);
   }, []);
 
-  const handleAdvanceCase = useCallback((txId: string) => {
-    void advanceCase(txId).then(({ status }) => {
-      setCases((prev) => prev.map((c) => (c.txId === txId ? { ...c, status } : c)));
+  const handleAdvanceCase = useCallback((txId: string, resolution?: CaseResolution) => {
+    void advanceCase(txId, resolution).then(({ status, resolution: appliedResolution }) => {
+      setCases((prev) =>
+        prev.map((c) => (c.txId === txId ? { ...c, status, resolution: appliedResolution } : c))
+      );
     });
   }, []);
 
@@ -115,6 +119,24 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
     void toggleRule(id, enabled);
     setRules((prev) => prev.map((r) => (r.id === id ? { ...r, enabled } : r)));
   }, []);
+
+  const handleUpdateRule = useCallback(
+    (id: string, fields: { name: string; description: string; ruleType: RuleType; config: Record<string, unknown> }) => {
+      void updateRule(id, fields).then(({ rule }) => {
+        setRules((prev) => prev.map((r) => (r.id === id ? rule : r)));
+      });
+    },
+    []
+  );
+
+  const handleCreateRule = useCallback(
+    (fields: { name: string; description: string; ruleType: RuleType; config: Record<string, unknown> }) => {
+      void createRule(fields).then(({ rule }) => {
+        setRules((prev) => [...prev, rule]);
+      });
+    },
+    []
+  );
 
   const handleExportReport = useCallback(
     (report: Report) => {
@@ -252,7 +274,9 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
             />
           )}
           {activeView === "cases" && <CasesView cases={cases} onAdvance={handleAdvanceCase} />}
-          {activeView === "rules" && <RulesView rules={rules} onToggle={handleToggleRule} />}
+          {activeView === "rules" && (
+            <RulesView rules={rules} onToggle={handleToggleRule} onUpdate={handleUpdateRule} onCreate={handleCreateRule} />
+          )}
           {activeView === "reports" && (
             <ReportsView reports={REPORT_DEFS as Report[]} onExport={handleExportReport} />
           )}
