@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole, isAuthedUser } from "@/lib/authGuard";
 import { createClient } from "@/lib/supabase/server";
 import { assembleTransaction, generateRawTransaction, scoreTransaction } from "@/lib/mock";
-import { transactionToRow, rowToRule, type RuleRow } from "@/lib/rows";
+import { transactionToRow, rowToRule, rowToWatchlistEntry, type RuleRow, type WatchlistRow } from "@/lib/rows";
 import type { CaseRecord } from "@/lib/types";
 
 export async function POST() {
@@ -13,7 +13,7 @@ export async function POST() {
   const supabase = await createClient();
   const raw = generateRawTransaction();
 
-  const [{ data: ruleRows }, { count: recentCount }] = await Promise.all([
+  const [{ data: ruleRows }, { count: recentCount }, { data: watchlistRows }] = await Promise.all([
     supabase.from("fraudshield_rules").select("*").eq("org_id", orgId).eq("enabled", true),
     supabase
       .from("fraudshield_transactions")
@@ -21,10 +21,12 @@ export async function POST() {
       .eq("org_id", orgId)
       .eq("customer", raw.customer)
       .gte("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString()),
+    supabase.from("fraudshield_watchlist").select("*").eq("org_id", orgId),
   ]);
 
   const rules = ((ruleRows as RuleRow[] | null) ?? []).map(rowToRule);
-  const scored = scoreTransaction(raw, rules, (recentCount ?? 0) + 1);
+  const watchlist = ((watchlistRows as WatchlistRow[] | null) ?? []).map(rowToWatchlistEntry);
+  const scored = scoreTransaction(raw, rules, (recentCount ?? 0) + 1, watchlist);
   const transaction = assembleTransaction(raw, scored);
 
   const { error: txError } = await supabase

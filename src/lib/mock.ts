@@ -1,4 +1,4 @@
-import type { RiskBucketMeta, RiskFactor, Rule, Transaction } from "./types";
+import type { RiskBucketMeta, RiskFactor, Rule, Transaction, WatchlistEntry } from "./types";
 import type { Permission } from "./permissions";
 
 interface WeightedDef {
@@ -141,10 +141,13 @@ interface ScoredTransaction {
 }
 
 /**
- * Explainable, rule-driven scoring. Two kinds of factors:
+ * Explainable, rule-driven scoring. Three kinds of factors:
  *  - base factors (always evaluated): a small baseline variance, plus fixed
  *    penalties for a risky country/device pick — these apply regardless of
  *    configured rules, so scoring is never a no-op with zero rules enabled.
+ *  - watchlist factors (always evaluated): a blacklist match on the
+ *    customer/device/IP forces the score up; a whitelist match pulls it down.
+ *    Presence in the list *is* the toggle, unlike rules.
  *  - rule factors: each enabled org rule is evaluated against the raw
  *    transaction (and, for velocity, recent same-customer activity) and adds
  *    its own factor when triggered. Toggling/editing a rule genuinely
@@ -153,7 +156,8 @@ interface ScoredTransaction {
 export function scoreTransaction(
   raw: RawTransaction,
   rules: Rule[],
-  recentSameCustomerCount: number
+  recentSameCustomerCount: number,
+  watchlist: WatchlistEntry[] = []
 ): ScoredTransaction {
   const factors: RiskFactor[] = [];
 
@@ -165,6 +169,24 @@ export function scoreTransaction(
   }
   if (raw.deviceRisky) {
     factors.push({ code: "unrecognized_device", label: `Unrecognized device type: ${raw.device}`, weight: 28 });
+  }
+
+  const entryValue = { customer: raw.customer, device: raw.device, ip: raw.ip } as const;
+  for (const entry of watchlist) {
+    if (entryValue[entry.entryType] !== entry.value) continue;
+    if (entry.listType === "blacklist") {
+      factors.push({
+        code: `watchlist:${entry.id}`,
+        label: `Blacklisted ${entry.entryType}: ${entry.value}`,
+        weight: 50,
+      });
+    } else {
+      factors.push({
+        code: `watchlist:${entry.id}`,
+        label: `Whitelisted ${entry.entryType}: ${entry.value} — trusted`,
+        weight: -40,
+      });
+    }
   }
 
   for (const rule of rules) {
@@ -233,20 +255,24 @@ export function assembleTransaction(raw: RawTransaction, scored: ScoredTransacti
 }
 
 /** Convenience for callers that don't need to inspect the raw shape separately. */
-export function makeTransaction(rules: Rule[] = [], recentSameCustomerCount = 0): Transaction {
+export function makeTransaction(
+  rules: Rule[] = [],
+  recentSameCustomerCount = 0,
+  watchlist: WatchlistEntry[] = []
+): Transaction {
   const raw = generateRawTransaction();
-  const scored = scoreTransaction(raw, rules, recentSameCustomerCount);
+  const scored = scoreTransaction(raw, rules, recentSameCustomerCount, watchlist);
   return assembleTransaction(raw, scored);
 }
 
-export function seedTransactions(n: number, rules: Rule[] = []): Transaction[] {
+export function seedTransactions(n: number, rules: Rule[] = [], watchlist: WatchlistEntry[] = []): Transaction[] {
   const perCustomerCount = new Map<string, number>();
   const arr: Transaction[] = [];
   for (let i = 0; i < n; i++) {
     const raw = generateRawTransaction();
     const recentCount = (perCustomerCount.get(raw.customer) ?? 0) + 1;
     perCustomerCount.set(raw.customer, recentCount);
-    const scored = scoreTransaction(raw, rules, recentCount);
+    const scored = scoreTransaction(raw, rules, recentCount, watchlist);
     arr.push(assembleTransaction(raw, scored));
   }
   return arr;
@@ -298,6 +324,7 @@ export const NAV_DEFS: { id: string; label: string; icon: string; permission: Pe
   { id: "cases", label: "Case Management", icon: "fa-solid fa-folder-open", permission: "view:cases" },
   { id: "identities", label: "Identity Search", icon: "fa-solid fa-user-magnifying-glass", permission: "view:identities" },
   { id: "rules", label: "Rules Engine", icon: "fa-solid fa-list-check", permission: "view:rules" },
+  { id: "watchlist", label: "Blacklist / Whitelist", icon: "fa-solid fa-ban", permission: "view:watchlist" },
   { id: "reports", label: "Reports", icon: "fa-solid fa-file-lines", permission: "view:reports" },
   { id: "audit", label: "Audit Log", icon: "fa-solid fa-clipboard-list", permission: "view:audit_log" },
 ];

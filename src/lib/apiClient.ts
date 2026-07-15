@@ -10,6 +10,9 @@ import type {
   Rule,
   RuleType,
   Transaction,
+  WatchlistEntry,
+  WatchlistEntryType,
+  WatchlistType,
 } from "./types";
 
 interface BootstrapResponse {
@@ -113,4 +116,25 @@ export function getIdentityProfile(customer: string): Promise<{ profile: Identit
   return fetch(`/api/identities/${encodeURIComponent(customer)}`).then((res) =>
     json<{ profile: IdentityProfile }>(res)
   );
+}
+
+export function getWatchlist(): Promise<{ entries: WatchlistEntry[] }> {
+  return fetch("/api/watchlist").then((res) => json<{ entries: WatchlistEntry[] }>(res));
+}
+
+export function addWatchlistEntry(fields: {
+  listType: WatchlistType;
+  entryType: WatchlistEntryType;
+  value: string;
+  reason?: string;
+}): Promise<{ entry: WatchlistEntry }> {
+  return fetch("/api/watchlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  }).then((res) => json<{ entry: WatchlistEntry }>(res));
+}
+
+export function removeWatchlistEntry(id: number): Promise<{ ok: true }> {
+  return fetch(`/api/watchlist/${id}`, { method: "DELETE" }).then((res) => json<{ ok: true }>(res));
 }

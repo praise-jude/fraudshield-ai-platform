@@ -1,4 +1,12 @@
-export type View = "overview" | "transactions" | "cases" | "rules" | "reports" | "audit" | "identities";
+export type View =
+  | "overview"
+  | "transactions"
+  | "cases"
+  | "rules"
+  | "watchlist"
+  | "reports"
+  | "audit"
+  | "identities";
 
 export interface RiskFactor {
   code: string;
@@ -111,6 +119,19 @@ export interface RelatedIdentity {
   sharedValue: string;
   transactionCount: number;
   maxRiskScore: number;
+}
+
+export type WatchlistType = "blacklist" | "whitelist";
+export type WatchlistEntryType = "customer" | "device" | "ip";
+
+export interface WatchlistEntry {
+  id: number;
+  listType: WatchlistType;
+  entryType: WatchlistEntryType;
+  value: string;
+  reason: string | null;
+  createdByName: string | null;
+  createdAt: string;
 }
 
 export interface IdentityProfile {

@@ -36,6 +36,16 @@ export default function IdentitySearchView({ onSelectIdentity }: IdentitySearchV
 
   return (
     <div className="flex max-w-[720px] flex-col gap-4">
+      <div className="flex items-start gap-2.5 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-[12.5px] text-[#6B7280] dark:border-white/10 dark:bg-white/5">
+        <i className="fa-solid fa-circle-info mt-0.5 flex-none text-[#9CA3AF]" />
+        <div>
+          Identity Search aggregates your organization&apos;s own transaction and case history — it is
+          not a government or financial-institution lookup. BVN/NIN validation, KYC, AML/sanctions
+          screening, and criminal record checks require licensed third-party providers and are not
+          connected in this environment.
+        </div>
+      </div>
+
       <div className="relative">
         <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] text-[#9CA3AF]" />
         <input

@@ -1,4 +1,15 @@
-import type { CaseNote, CaseEvent, CaseRecord, CaseResolution, Rule, RuleType, Transaction } from "./types";
+import type {
+  CaseNote,
+  CaseEvent,
+  CaseRecord,
+  CaseResolution,
+  Rule,
+  RuleType,
+  Transaction,
+  WatchlistEntry,
+  WatchlistEntryType,
+  WatchlistType,
+} from "./types";
 
 export interface TransactionRow {
   id: string;
@@ -103,6 +114,28 @@ export function rowToCaseEvent(row: CaseEventRow): CaseEvent {
     eventType: row.event_type,
     actorName: row.actor_name,
     detail: row.detail,
+    createdAt: row.created_at,
+  };
+}
+
+export interface WatchlistRow {
+  id: number;
+  list_type: WatchlistType;
+  entry_type: WatchlistEntryType;
+  value: string;
+  reason: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export function rowToWatchlistEntry(row: WatchlistRow): WatchlistEntry {
+  return {
+    id: row.id,
+    listType: row.list_type,
+    entryType: row.entry_type,
+    value: row.value,
+    reason: row.reason,
+    createdByName: row.created_by_name,
     createdAt: row.created_at,
   };
 }

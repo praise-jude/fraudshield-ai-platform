@@ -26,6 +26,8 @@ export const PERMISSIONS = [
   "view:audit_log",
   "simulate:transactions",
   "view:identities",
+  "view:watchlist",
+  "manage:watchlist",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -45,6 +47,8 @@ export const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
     "view:rules",
     "simulate:transactions",
     "view:identities",
+    "view:watchlist",
+    "manage:watchlist",
   ]),
   risk_manager: new Set<Permission>([
     "view:overview",
@@ -54,6 +58,8 @@ export const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
     "view:rules",
     "manage:rules",
     "view:identities",
+    "view:watchlist",
+    "manage:watchlist",
   ]),
   compliance_officer: new Set<Permission>([
     "view:overview",
@@ -62,6 +68,7 @@ export const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
     "export:reports",
     "view:audit_log",
     "view:identities",
+    "view:watchlist",
   ]),
   auditor: new Set<Permission>([
     "view:overview",
@@ -69,6 +76,7 @@ export const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
     "export:reports",
     "view:audit_log",
     "view:identities",
+    "view:watchlist",
   ]),
   customer_support: new Set<Permission>(["view:overview", "view:cases"]),
   read_only: new Set<Permission>([
@@ -78,6 +86,7 @@ export const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
     "view:rules",
     "view:reports",
     "view:identities",
+    "view:watchlist",
   ]),
 };
 

@@ -12,19 +12,35 @@ import ReportsView from "@/components/views/ReportsView";
 import AuditLogView from "@/components/views/AuditLogView";
 import IdentitySearchView from "@/components/views/IdentitySearchView";
 import IdentityProfilePanel from "@/components/views/IdentityProfilePanel";
+import WatchlistView from "@/components/views/WatchlistView";
 import {
+  addWatchlistEntry,
   advanceCase,
   createRule,
   exportReport,
   getAuditLogs,
   getBootstrap,
+  getWatchlist,
+  removeWatchlistEntry,
   simulateTransaction,
   toggleRule,
   updateRule,
 } from "@/lib/apiClient";
 import { NAV_DEFS, REPORT_DEFS, riskBucket } from "@/lib/mock";
 import { hasPermission, type Role } from "@/lib/permissions";
-import type { AuditLogEntry, CaseRecord, CaseResolution, Report, Rule, RuleType, Transaction, View } from "@/lib/types";
+import type {
+  AuditLogEntry,
+  CaseRecord,
+  CaseResolution,
+  Report,
+  Rule,
+  RuleType,
+  Transaction,
+  View,
+  WatchlistEntry,
+  WatchlistEntryType,
+  WatchlistType,
+} from "@/lib/types";
 
 interface DashboardClientProps {
   role: Role;
@@ -37,6 +53,7 @@ const VIEW_TITLES: Record<View, string> = {
   transactions: "Transactions",
   cases: "Case Management",
   rules: "Rules Engine",
+  watchlist: "Blacklist / Whitelist",
   reports: "Reports",
   audit: "Audit Log",
   identities: "Identity Search",
@@ -46,6 +63,7 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
   const visibleNav = useMemo(() => NAV_DEFS.filter((item) => hasPermission(role, item.permission)), [role]);
   const canSimulate = hasPermission(role, "simulate:transactions");
   const canViewIdentities = hasPermission(role, "view:identities");
+  const canManageWatchlist = hasPermission(role, "manage:watchlist");
 
   const [activeView, setActiveView] = useState<View>((visibleNav[0]?.id as View) ?? "overview");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -53,6 +71,7 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
   const [rules, setRules] = useState<Rule[]>([]);
   const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [watchlist, setWatchlist] = useState<WatchlistEntry[]>([]);
   const [txSearch, setTxSearch] = useState("");
   const [txRiskFilter, setTxRiskFilter] = useState("all");
   const [liveOn, setLiveOn] = useState(canSimulate);
@@ -88,6 +107,17 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
       .finally(() => {
         if (!cancelled) setAuditLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView]);
+
+  useEffect(() => {
+    if (activeView !== "watchlist") return;
+    let cancelled = false;
+    getWatchlist().then((data) => {
+      if (!cancelled) setWatchlist(data.entries);
+    });
     return () => {
       cancelled = true;
     };
@@ -143,6 +173,21 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
     },
     []
   );
+
+  const handleAddWatchlistEntry = useCallback(
+    (fields: { listType: WatchlistType; entryType: WatchlistEntryType; value: string; reason?: string }) => {
+      void addWatchlistEntry(fields).then(({ entry }) => {
+        setWatchlist((prev) => [entry, ...prev]);
+      });
+    },
+    []
+  );
+
+  const handleRemoveWatchlistEntry = useCallback((id: number) => {
+    void removeWatchlistEntry(id).then(() => {
+      setWatchlist((prev) => prev.filter((e) => e.id !== id));
+    });
+  }, []);
 
   const handleExportReport = useCallback(
     (report: Report) => {
@@ -292,6 +337,14 @@ export default function DashboardClient({ role, userName, userInitials }: Dashbo
           )}
           {activeView === "rules" && (
             <RulesView rules={rules} onToggle={handleToggleRule} onUpdate={handleUpdateRule} onCreate={handleCreateRule} />
+          )}
+          {activeView === "watchlist" && (
+            <WatchlistView
+              entries={watchlist}
+              canManage={canManageWatchlist}
+              onAdd={handleAddWatchlistEntry}
+              onRemove={handleRemoveWatchlistEntry}
+            />
           )}
           {activeView === "reports" && (
             <ReportsView reports={REPORT_DEFS as Report[]} onExport={handleExportReport} />
